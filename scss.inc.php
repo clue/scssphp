@@ -922,6 +922,14 @@ class scssc {
 				$h = '#' . $h[1] . $h[3] . $h[5];
 			}
 
+			if ($this->formatter->replaceColorNames) {
+			    // Convert hex color to css color name if shorter (e.g. #f00 to red)
+			    $name = array_search($r.','.$g.','.$b, self::$cssColors, true);
+			    if ($name !== false && strlen($name) < strlen($h)) {
+			        $h = $name;
+			    }
+			}
+
 			return $h;
 		case "number":
 			return round($value[1], self::$numberPrecision) . $value[2];
@@ -3345,6 +3353,7 @@ class scss_formatter {
 	public $assignSeparator = ": ";
 	
 	public $removeTrailingSemicolon = false;
+	public $replaceColorNames = false;
 
 	public function __construct() {
 		$this->indentLevel = 0;
@@ -3485,6 +3494,7 @@ class scss_formatter_compressed extends scss_formatter {
 	public $assignSeparator = ":";
 	public $break = "";
 	public $removeTrailingSemicolon = true;
+	public $replaceColorNames = true;
 
 	public function indentStr($n = 0) {
 		return "";
