@@ -69,9 +69,7 @@ class scssc {
 		$this->compileRoot($tree);
 		$this->flattenSelectors($this->scope);
 
-		ob_start();
-		$this->formatter->block($this->scope);
-		$out = ob_get_clean();
+		$out = $this->formatter->block($this->scope);
 
 		setlocale(LC_NUMERIC, $locale);
 		return $out;
@@ -3374,12 +3372,14 @@ class scss_formatter {
 	}
 
 	public function block($block) {
-		if (empty($block->lines) && empty($block->children)) return;
+		if (empty($block->lines) && empty($block->children)) return '';
 
 		$inner = $pre = $this->indentStr();
+		
+		$ret = '';
 
 		if (!empty($block->selectors)) {
-			echo $pre .
+			$ret .= $pre .
 				implode($this->tagSeparator, $block->selectors) .
 				$this->open . $this->break;
 			$this->indentLevel++;
@@ -3388,21 +3388,22 @@ class scss_formatter {
 
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
-			echo $inner . implode($glue, $block->lines);
+			$ret .= $inner . implode($glue, $block->lines);
 			if (!empty($block->children)) {
-				echo $this->break;
+				$ret .= $this->break;
 			}
 		}
 
 		foreach ($block->children as $child) {
-			$this->block($child);
+			$ret .= $this->block($child);
 		}
 
 		if (!empty($block->selectors)) {
 			$this->indentLevel--;
-			if (empty($block->children)) echo $this->break;
-			echo $pre . $this->close . $this->break;
+			if (empty($block->children)) $ret .= $this->break;
+			$ret .= $pre . $this->close . $this->break;
 		}
+		return $ret;
 	}
 }
 
@@ -3436,10 +3437,12 @@ class scss_formatter_nested extends scss_formatter {
 		if ($block->type == "root") {
 			$this->adjustAllChildren($block);
 		}
+		
+		$ret = '';
 
 		$inner = $pre = $this->indentStr($block->depth - 1);
 		if (!empty($block->selectors)) {
-			echo $pre .
+			$ret .= $pre .
 				implode($this->tagSeparator, $block->selectors) .
 				$this->open . $this->break;
 			$this->indentLevel++;
@@ -3448,20 +3451,20 @@ class scss_formatter_nested extends scss_formatter {
 
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
-			echo $inner . implode($glue, $block->lines);
-			if (!empty($block->children)) echo $this->break;
+			$ret .= $inner . implode($glue, $block->lines);
+			if (!empty($block->children)) $ret .= $this->break;
 		}
 
 		foreach ($block->children as $i => $child) {
 			// echo "*** block: ".$block->depth." child: ".$child->depth."\n";
-			$this->block($child);
+			$ret .= $this->block($child);
 			if ($i < count($block->children) - 1) {
-				echo $this->break;
+				$ret .= $this->break;
 
 				if (isset($block->children[$i + 1])) {
 					$next = $block->children[$i + 1];
 					if ($next->depth == max($block->depth, 1) && $child->depth >= $next->depth) {
-						echo $this->break;
+						$ret .= $this->break;
 					}
 				}
 			}
@@ -3469,12 +3472,13 @@ class scss_formatter_nested extends scss_formatter {
 
 		if (!empty($block->selectors)) {
 			$this->indentLevel--;
-			echo $this->close;
+			$ret .= $this->close;
 		}
 
 		if ($block->type == "root") {
-			echo $this->break;
+			$ret .= $this->break;
 		}
+		return $ret;
 	}
 }
 
