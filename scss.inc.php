@@ -3358,6 +3358,8 @@ class scss_formatter {
 	public $close = "}";
 	public $tagSeparator = ", ";
 	public $assignSeparator = ": ";
+	
+	public $removeTrailingSemicolon = false;
 
 	public function __construct() {
 		$this->indentLevel = 0;
@@ -3389,6 +3391,11 @@ class scss_formatter {
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
 			$ret .= $inner . implode($glue, $block->lines);
+			
+			if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
+				$ret = substr($ret, 0, -1);
+			}
+			
 			if (!empty($block->children)) {
 				$ret .= $this->break;
 			}
@@ -3452,6 +3459,11 @@ class scss_formatter_nested extends scss_formatter {
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
 			$ret .= $inner . implode($glue, $block->lines);
+			
+			if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
+			    $ret = substr($ret, 0, -1);
+			}
+			
 			if (!empty($block->children)) $ret .= $this->break;
 		}
 
@@ -3487,6 +3499,7 @@ class scss_formatter_compressed extends scss_formatter {
 	public $tagSeparator = ",";
 	public $assignSeparator = ":";
 	public $break = "";
+	public $removeTrailingSemicolon = true;
 
 	public function indentStr($n = 0) {
 		return "";
