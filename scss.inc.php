@@ -453,7 +453,9 @@ class scssc {
 				$this->compileValue($child[2]));
 			break;
 		case "comment":
-			$out->lines[] = $child[1];
+			if(!$this->formatter->stripComments){
+				$out->lines[] = $child[1];
+			}
 			break;
 		case "mixin":
 		case "function":
@@ -3374,6 +3376,7 @@ class scss_formatter {
 	public $removeTrailingSemicolon = false;
 	public $replaceColorNames = false;
 	public $omitZeroUnit = false;
+	public $stripComments = false;
 
 	public function __construct() {
 		$this->indentLevel = 0;
@@ -3516,6 +3519,7 @@ class scss_formatter_compressed extends scss_formatter {
 	public $removeTrailingSemicolon = true;
 	public $replaceColorNames = true;
 	public $omitZeroUnit = true;
+	public $stripComments = true;
 
 	public function indentStr($n = 0) {
 		return "";
