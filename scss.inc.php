@@ -940,7 +940,11 @@ class scssc {
 
 			return $h;
 		case "number":
-			return round($value[1], self::$numberPrecision) . $value[2];
+			$num = round($value[1], self::$numberPrecision);
+			if ($this->formatter->omitZeroUnit && $num == 0) {
+				return 0;
+			}
+			return $num . $value[2];
 		case "string":
 			return $value[1] . $this->compileStringContent($value) . $value[1];
 		case "function":
@@ -3369,6 +3373,7 @@ class scss_formatter {
 	
 	public $removeTrailingSemicolon = false;
 	public $replaceColorNames = false;
+	public $omitZeroUnit = false;
 
 	public function __construct() {
 		$this->indentLevel = 0;
@@ -3510,6 +3515,7 @@ class scss_formatter_compressed extends scss_formatter {
 	public $break = "";
 	public $removeTrailingSemicolon = true;
 	public $replaceColorNames = true;
+	public $omitZeroUnit = true;
 
 	public function indentStr($n = 0) {
 		return "";
