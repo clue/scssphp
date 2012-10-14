@@ -919,7 +919,7 @@ class scssc {
 			$r = round($r);
 			$g = round($g);
 			$b = round($b);
-			$a = (count($value) == 5) ? $value[4] : 1;
+			$a = (count($value) == 5) ? max(0,min($value[4],1)) : 1;
 
 			return $this->formatter->color($r, $g, $b, $a);
 		case "number":
