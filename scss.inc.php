@@ -24,7 +24,6 @@ class scssc {
 		"function" => "^",
 	);
 
-	static protected $numberPrecision = 3;
 	static protected $unitTable = array(
 		"in" => array(
 			"in" => 1,
@@ -912,33 +911,11 @@ class scssc {
 			$r = round($r);
 			$g = round($g);
 			$b = round($b);
+			$a = (count($value) == 5) ? $value[4] : 1;
 
-			if (count($value) == 5 && $value[4] != 1) { // rgba
-				return 'rgba('.$r.', '.$g.', '.$b.', '.$value[4].')';
-			}
-
-			$h = sprintf("#%02x%02x%02x", $r, $g, $b);
-
-			// Converting hex color to short notation (e.g. #003399 to #039)
-			if ($h[1] === $h[2] && $h[3] === $h[4] && $h[5] === $h[6]) {
-				$h = '#' . $h[1] . $h[3] . $h[5];
-			}
-
-			if ($this->formatter->replaceColorNames) {
-			    // Convert hex color to css color name if shorter (e.g. #f00 to red)
-			    $name = array_search($r.','.$g.','.$b, self::$cssColors, true);
-			    if ($name !== false && strlen($name) < strlen($h)) {
-			        $h = $name;
-			    }
-			}
-
-			return $h;
+			return $this->formatter->color($r, $g, $b, $a);
 		case "number":
-			$num = round($value[1], self::$numberPrecision);
-			if ($this->formatter->omitZeroUnit && $num == 0) {
-				return 0;
-			}
-			return $num . $value[2];
+			return $this->formatter->number($value[1],$value[2]);
 		case "string":
 			return $value[1] . $this->compileStringContent($value) . $value[1];
 		case "function":
@@ -1919,7 +1896,7 @@ class scssc {
 		return true; // TODO: THIS
 	}
 
-	static protected $cssColors = array(
+	public static $cssColors = array(
 		'aliceblue' => '240,248,255',
 		'antiquewhite' => '250,235,215',
 		'aqua' => '0,255,255',
@@ -3362,6 +3339,7 @@ class scss_formatter {
 	public $replaceColorNames = false;
 	public $omitZeroUnit = false;
 	public $stripComments = false;
+	public $numberPrecision = 3;
 
 	public function __construct() {
 		$this->indentLevel = 0;
@@ -3373,6 +3351,37 @@ class scss_formatter {
 
 	public function property($name, $value) {
 		return $name . $this->assignSeparator . $value . ";";
+	}
+	
+	public function color($r, $g, $b, $a) {
+		if ($a != 1) { // rgba
+		    return 'rgba('.$r.', '.$g.', '.$b.', '.$a.')';
+		}
+		
+		$h = sprintf("#%02x%02x%02x", $r, $g, $b);
+		
+		// Converting hex color to short notation (e.g. #003399 to #039)
+		if ($h[1] === $h[2] && $h[3] === $h[4] && $h[5] === $h[6]) {
+		    $h = '#' . $h[1] . $h[3] . $h[5];
+		}
+		
+		if ($this->replaceColorNames) {
+		    // Convert hex color to css color name if shorter (e.g. #f00 to red)
+		    $name = array_search($r.','.$g.','.$b, scssc::$cssColors, true);
+		    if ($name !== false && strlen($name) < strlen($h)) {
+		        $h = $name;
+		    }
+		}
+		
+		return $h;
+	}
+	
+	public function number($num, $unit) {
+		$num = round($num, $this->numberPrecision);
+		if ($this->omitZeroUnit && $num == 0) {
+		    return 0;
+		}
+		return $num . $unit;
 	}
 
 	public function block($block) {
