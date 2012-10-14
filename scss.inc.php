@@ -3353,6 +3353,7 @@ class scss_formatter {
 	public $removeTrailingSemicolon = false;
 	public $replaceColorNames = false;
 	public $omitZeroUnit = false;
+	public $omitZeroLeading = false;
 	public $stripComments = false;
 	public $numberPrecision = 3;
 
@@ -3395,6 +3396,13 @@ class scss_formatter {
 		$num = round($num, $this->numberPrecision);
 		if ($this->omitZeroUnit && $num == 0) {
 		    return 0;
+		}
+		if ($this->omitZeroLeading) {
+		    if ($num > 0 && $num < 1) {
+		        $num = substr($num, 1);
+		    } else if ($num < 0 && $num > -1) {
+		        $num = '-' . substr($num, 2);
+		    }
 		}
 		return $num . $unit;
 	}
@@ -3526,6 +3534,7 @@ class scss_formatter_compressed extends scss_formatter {
 	public $removeTrailingSemicolon = true;
 	public $replaceColorNames = true;
 	public $omitZeroUnit = true;
+	public $omitZeroLeading = true;
 	public $stripComments = true;
 
 	public function indentStr($n = 0) {
