@@ -1334,8 +1334,10 @@ class scssc {
 		case "keyword":
 			$name = $value[1];
 			if (isset(self::$cssColors[$name])) {
-				list($r, $g, $b) = explode(',', self::$cssColors[$name]);
-				return array('color', $r, $g, $b);
+				$color = explode(',', self::$cssColors[$name]);
+				// array('color', $r, $g, $b);
+				array_unshift($color, 'color');
+				return $color;
 			}
 			return null;
 		}
@@ -1897,6 +1899,7 @@ class scssc {
 	}
 
 	public static $cssColors = array(
+		'transparent' => '0,0,0,0',
 		'aliceblue' => '240,248,255',
 		'antiquewhite' => '250,235,215',
 		'aqua' => '0,255,255',
@@ -3356,6 +3359,9 @@ class scss_formatter {
 	
 	public function color($r, $g, $b, $a) {
 		if (($a = $this->number($a, null)) != 1) { // rgba
+			if ($a == 0 && $this->replaceColorNames) {
+				return 'transparent';
+			}
 		    return 'rgba('.$r.$this->tagSeparator.$g.$this->tagSeparator.$b.$this->tagSeparator.$a.')';
 		}
 		
