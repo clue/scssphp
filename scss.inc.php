@@ -1347,7 +1347,7 @@ class scssc {
 		switch ($value[0]) {
 		case "color": return $value;
 		case "keyword":
-			$name = $value[1];
+			$name = strtolower($value[1]);
 			if (isset(self::$cssColors[$name])) {
 				$color = explode(',', self::$cssColors[$name]);
 				// array('color', $r, $g, $b);
