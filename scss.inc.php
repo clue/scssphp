@@ -3354,8 +3354,8 @@ class scss_formatter {
 	}
 	
 	public function color($r, $g, $b, $a) {
-		if ($a != 1) { // rgba
-		    return 'rgba('.$r.', '.$g.', '.$b.', '.$a.')';
+		if (($a = $this->number($a, null)) != 1) { // rgba
+		    return 'rgba('.$r.$this->tagSeparator.$g.$this->tagSeparator.$b.$this->tagSeparator.$a.')';
 		}
 		
 		$h = sprintf("#%02x%02x%02x", $r, $g, $b);
