@@ -3393,13 +3393,11 @@ class scss_formatter {
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
 			$ret .= $inner . implode($glue, $block->lines);
-			
-			if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
-				$ret = substr($ret, 0, -1);
-			}
-			
+
 			if (!empty($block->children)) {
 				$ret .= $this->break;
+			} else if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
+			    $ret = substr($ret, 0, -1);
 			}
 		}
 
@@ -3461,12 +3459,12 @@ class scss_formatter_nested extends scss_formatter {
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
 			$ret .= $inner . implode($glue, $block->lines);
-			
-			if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
+
+			if (!empty($block->children)) {
+				$ret .= $this->break;
+			} else if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
 			    $ret = substr($ret, 0, -1);
 			}
-			
-			if (!empty($block->children)) $ret .= $this->break;
 		}
 
 		foreach ($block->children as $i => $child) {
