@@ -937,7 +937,7 @@ class scssc {
 			foreach ($items as &$item) {
 				$item = $this->compileValue($item);
 			}
-			return implode("$delim ", $items);
+			return $this->formatter->implodeList($delim, $items);
 		case "interpolated": # node created by extractInterpolation
 			list(, $interpolate, $left, $right) = $value;
 			list(,, $whiteLeft, $whiteRight) = $interpolate;
@@ -3371,7 +3371,11 @@ class scss_formatter {
 	public function property($name, $value) {
 		return $name . $this->assignSeparator . $value . ";";
 	}
-	
+
+	public function implodeList($delim, $items) {
+	    return implode("$delim ", $items);
+	}
+
 	public function color($r, $g, $b, $a) {
 		if (($a = $this->number($a, null)) != 1) { // rgba
 			if ($a == 0 && $this->replaceColorNames) {
@@ -3545,6 +3549,14 @@ class scss_formatter_compressed extends scss_formatter {
 
 	public function indentStr($n = 0) {
 		return "";
+	}
+
+	public function implodeList($delim, $list) {
+	    // no delimiter => actually a whitespace separated list (as in "margin")
+	    if ($delim == "") {
+	        $delim = " ";
+	    }
+	    return implode($delim, $list);
 	}
 }
 
