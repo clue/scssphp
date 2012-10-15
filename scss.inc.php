@@ -324,7 +324,7 @@ class scssc {
 	protected function compileSelector($selector) {
 		if (!is_array($selector)) return $selector; // media and the like
 
-		return implode(" ", array_map(
+		return $this->formatter->implodeSelectors(array_map(
 			array($this, "compileSelectorPart"), $selector));
 	}
 
@@ -3376,6 +3376,10 @@ class scss_formatter {
 	    return implode("$delim ", $items);
 	}
 
+	public function implodeSelectors($selectors) {
+	    return implode(" ", $selectors);
+	}
+
 	public function color($r, $g, $b, $a) {
 		if (($a = $this->number($a, null)) != 1) { // rgba
 			if ($a == 0 && $this->replaceColorNames) {
@@ -3557,6 +3561,25 @@ class scss_formatter_compressed extends scss_formatter {
 	        $delim = " ";
 	    }
 	    return implode($delim, $list);
+	}
+
+	public function implodeSelectors($selectors){
+	    $ret = '';
+	    $ws = false;
+	    foreach($selectors as $selector){
+	        // do not use whitespace around descendant selectors
+	        if (in_array($selector,array('+','~','>'),true)) {
+	            $ws = false;
+	        }else{
+	            if ($ws) {
+	                $ret .= ' ';
+	            } else {
+	                $ws = true;
+	            }
+	        }
+	        $ret .= $selector;
+	    }
+	    return $ret;
 	}
 }
 
