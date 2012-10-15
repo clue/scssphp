@@ -361,7 +361,7 @@ class scssc {
 				break;
 			case "mediaExp":
 				if (isset($q[2])) {
-					$parts[] = "($q[1]: " . $this->compileValue($q[2]) . ")";
+					$parts[] = "($q[1]" . $this->formatter->assignSeparator . $this->compileValue($q[2]) . ")";
 				} else {
 					$parts[] = "($q[1])";
 				}
