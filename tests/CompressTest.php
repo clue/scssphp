@@ -7,7 +7,7 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		$this->scss = new scssc();
 		$this->scss->setFormatter(new scss_formatter_compressed());
 	}
-	
+
 	public function testCompressTwice(){
 		$code = file_get_contents(__DIR__.'/inputs/variables.scss');
 		
@@ -15,7 +15,7 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($result,$this->scss->compile($result));
 	}
-	
+
 	public function testCompressFormat(){
 		// check removing trailing semicolons
 		$this->assertEquals('@import "missing";a{border:0;content:";";border:0}b{border:0}',$this->scss->compile('@import "missing";a{border:0;content:";";border:0;}b{border:0;}'));
@@ -36,16 +36,36 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		
 		// remove whitespace around list delimiter, but keep whitespace between space separated values
 		$this->assertEquals('*{a:red,green,blue}a{margin:0 0 0 0}',$this->scss->compile('* { a: red, green , blue ; } a { margin:  0  0  0   0; }'));
-		
 	}
-	
+
+	/**
+	 * @dataProvider equalMediaProvider
+	 */
+	public function testMediaQueries($in,$out){
+		$this->assertEquals('@media '.$out.'{a{border:0}}',$this->scss->compile('@media '.$in.' {a{border:0}}'));
+	}
+
+	public function equalMediaProvider() {
+		// http://www.w3.org/TR/css3-mediaqueries/
+		return $this->prepareSet(array(
+			'only screen' => 'only screen', // unchanged
+			'  only  screen ' => 'only screen', // remove optional whitespace
+// 			'screen, print' => 'screen,print', // remove whitespace between OR'ed queries
+			'(min-width:  100px )' => '(min-width:100px)', // check media features
+			'(min-width: 0px)' => '(min-width:0)', // remove zero unit
+			'only screen and (min-width:  0px) and (max-width: 1000px)' => 'only screen and (min-width:0) and (max-width:1000px)',
+// 			'handheld, only screen and (max-width: 1000px)' => 'handheld,only screen and (max-width:1000px)',
+// 			'screen and (device-aspect-ratio: 16/9) , print and (min-resolution: 300dpi)' => 'screen and (device-aspect-ratio:16/9),print and (min-resolution:300dpi)'
+		));
+	}
+
 	/**
 	 * @dataProvider equalColorsProvider
 	 */
 	public function testCompressColor($in,$out) {
 		$this->assertEquals('color:'.$out,$this->scss->compile('color:'.$in));
 	}
-	
+
 	public function equalColorsProvider() {
 		return $this->prepareSet(array(
 			'red' => 'red', // unchanged color keyword as shortest
@@ -65,14 +85,14 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 			'opacify(WhiTe,1)' => '#fff' // color keywords are actually case insensitive
 		));
 	}
-	
+
 	/**
 	 * @dataProvider equalNumbersProvider
 	 */
 	public function testCompressNumber($in,$out){
 		$this->assertEquals('padding:'.$out,$this->scss->compile('padding:'.$in));
 	}
-	
+
 	public function equalNumbersProvider(){
 		return $this->prepareSet(array(
 			'14px' => '14px', // unchanged
