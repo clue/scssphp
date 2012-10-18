@@ -26,3 +26,22 @@
     color: red;
   div {
     color: red; } }
+
+@media a and b, a and c {
+  a: 0; }
+  
+@media a and e and b, a and e and c {
+  b: 0; }
+
+@media a and c, b and c {
+  div {
+    display: none; } } }
+
+@media a and d, a and e, b and d, b and e {
+  div {
+    display: none; } } }
+    
+@media a and f and g, b and f and g {
+  div {
+    display: none; } } }
+  

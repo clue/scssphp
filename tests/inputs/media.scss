@@ -33,4 +33,28 @@
    }
 }
 
+@media a {
+    @media b, c{
+        a: 0;
+    }
+}
 
+@media a and e{
+    @media b, c{
+        b: 0;
+    }
+}
+
+@media a, b {
+    @media c {
+        div {
+            display: none;
+        }
+    }
+    @media d, e {
+        f: 0;
+    }
+    @media f and g {
+        a: 0;
+    }
+}
