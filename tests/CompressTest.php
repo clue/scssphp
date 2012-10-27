@@ -50,12 +50,12 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		return $this->prepareSet(array(
 			'only screen' => 'only screen', // unchanged
 			'  only  screen ' => 'only screen', // remove optional whitespace
-// 			'screen, print' => 'screen,print', // remove whitespace between OR'ed queries
+ 			'screen, print' => 'screen,print', // remove whitespace between OR'ed queries
 			'(min-width:  100px )' => '(min-width:100px)', // check media features
 			'(min-width: 0px)' => '(min-width:0)', // remove zero unit
 			'only screen and (min-width:  0px) and (max-width: 1000px)' => 'only screen and (min-width:0) and (max-width:1000px)',
-// 			'handheld, only screen and (max-width: 1000px)' => 'handheld,only screen and (max-width:1000px)',
-// 			'screen and (device-aspect-ratio: 16/9) , print and (min-resolution: 300dpi)' => 'screen and (device-aspect-ratio:16/9),print and (min-resolution:300dpi)'
+ 			'handheld, only screen and (max-width: 1000px)' => 'handheld,only screen and (max-width:1000px)',
+ 			'screen and (device-aspect-ratio: 16/9) , print and (min-resolution: 300dpi)' => 'screen and (device-aspect-ratio:16/9),print and (min-resolution:300dpi)'
 		));
 	}
 
