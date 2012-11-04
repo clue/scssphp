@@ -25,7 +25,6 @@ class scssc {
 		"function" => "^",
 	);
 
-	static protected $numberPrecision = 3;
 	static protected $unitTable = array(
 		"in" => array(
 			"in" => 1,
@@ -71,9 +70,7 @@ class scssc {
 		$this->compileRoot($tree);
 		$this->flattenSelectors($this->scope);
 
-		ob_start();
-		$this->formatter->block($this->scope);
-		$out = ob_get_clean();
+		$out = $this->formatter->block($this->scope);
 
 		setlocale(LC_NUMERIC, $locale);
 		return $out;
@@ -329,7 +326,7 @@ class scssc {
 	protected function compileSelector($selector) {
 		if (!is_array($selector)) return $selector; // media and the like
 
-		return implode(" ", array_map(
+		return $this->formatter->implodeSelectors(array_map(
 			array($this, "compileSelectorPart"), $selector));
 	}
 
@@ -457,7 +454,9 @@ class scssc {
 				$this->compileValue($child[2]));
 			break;
 		case "comment":
-			$out->lines[] = $child[1];
+			if(!$this->formatter->stripComments){
+				$out->lines[] = $child[1];
+			}
 			break;
 		case "mixin":
 		case "function":
@@ -965,21 +964,11 @@ class scssc {
 			$r = round($r);
 			$g = round($g);
 			$b = round($b);
+			$a = (count($value) == 5) ? max(0,min($value[4],1)) : 1;
 
-			if (count($value) == 5 && $value[4] != 1) { // rgba
-				return 'rgba('.$r.', '.$g.', '.$b.', '.$value[4].')';
-			}
-
-			$h = sprintf("#%02x%02x%02x", $r, $g, $b);
-
-			// Converting hex color to short notation (e.g. #003399 to #039)
-			if ($h[1] === $h[2] && $h[3] === $h[4] && $h[5] === $h[6]) {
-				$h = '#' . $h[1] . $h[3] . $h[5];
-			}
-
-			return $h;
+			return $this->formatter->color($r, $g, $b, $a);
 		case "number":
-			return round($value[1], self::$numberPrecision) . $value[2];
+			return $this->formatter->number($value[1],$value[2]);
 		case "string":
 			return $value[1] . $this->compileStringContent($value) . $value[1];
 		case "function":
@@ -993,7 +982,7 @@ class scssc {
 			foreach ($items as &$item) {
 				$item = $this->compileValue($item);
 			}
-			return implode("$delim ", $items);
+			return $this->formatter->implodeList($delim, $items);
 		case "interpolated": # node created by extractInterpolation
 			list(, $interpolate, $left, $right) = $value;
 			list(,, $whiteLeft, $whiteRight) = $interpolate;
@@ -1417,10 +1406,12 @@ class scssc {
 		switch ($value[0]) {
 		case "color": return $value;
 		case "keyword":
-			$name = $value[1];
+			$name = strtolower($value[1]);
 			if (isset(self::$cssColors[$name])) {
-				list($r, $g, $b) = explode(',', self::$cssColors[$name]);
-				return array('color', $r, $g, $b);
+				$color = explode(',', self::$cssColors[$name]);
+				// array('color', $r, $g, $b);
+				array_unshift($color, 'color');
+				return $color;
 			}
 			return null;
 		}
@@ -2043,7 +2034,8 @@ class scssc {
 		return true; // TODO: THIS
 	}
 
-	static protected $cssColors = array(
+	public static $cssColors = array(
+		'transparent' => '0,0,0,0',
 		'aliceblue' => '240,248,255',
 		'antiquewhite' => '250,235,215',
 		'aqua' => '0,255,255',
@@ -3515,6 +3507,13 @@ class scss_formatter {
 	public $close = "}";
 	public $tagSeparator = ", ";
 	public $assignSeparator = ": ";
+	
+	public $removeTrailingSemicolon = false;
+	public $replaceColorNames = false;
+	public $omitZeroUnit = false;
+	public $omitZeroLeading = false;
+	public $stripComments = false;
+	public $numberPrecision = 3;
 
 	public function __construct() {
 		$this->indentLevel = 0;
@@ -3528,13 +3527,64 @@ class scss_formatter {
 		return $name . $this->assignSeparator . $value . ";";
 	}
 
+	public function implodeList($delim, $items) {
+	    return implode("$delim ", $items);
+	}
+
+	public function implodeSelectors($selectors) {
+	    return implode(" ", $selectors);
+	}
+
+	public function color($r, $g, $b, $a) {
+		if (($a = $this->number($a, null)) != 1) { // rgba
+			if ($a == 0 && $this->replaceColorNames) {
+				return 'transparent';
+			}
+		    return 'rgba('.$r.$this->tagSeparator.$g.$this->tagSeparator.$b.$this->tagSeparator.$a.')';
+		}
+		
+		$h = sprintf("#%02x%02x%02x", $r, $g, $b);
+		
+		// Converting hex color to short notation (e.g. #003399 to #039)
+		if ($h[1] === $h[2] && $h[3] === $h[4] && $h[5] === $h[6]) {
+		    $h = '#' . $h[1] . $h[3] . $h[5];
+		}
+		
+		if ($this->replaceColorNames) {
+		    // Convert hex color to css color name if shorter (e.g. #f00 to red)
+		    $name = array_search($r.','.$g.','.$b, scssc::$cssColors, true);
+		    if ($name !== false && strlen($name) < strlen($h)) {
+		        $h = $name;
+		    }
+		}
+		
+		return $h;
+	}
+	
+	public function number($num, $unit) {
+		$num = round($num, $this->numberPrecision);
+		if ($this->omitZeroUnit && $num == 0) {
+		    return 0;
+		}
+		if ($this->omitZeroLeading) {
+		    if ($num > 0 && $num < 1) {
+		        $num = substr($num, 1);
+		    } else if ($num < 0 && $num > -1) {
+		        $num = '-' . substr($num, 2);
+		    }
+		}
+		return $num . $unit;
+	}
+
 	public function block($block) {
-		if (empty($block->lines) && empty($block->children)) return;
+		if (empty($block->lines) && empty($block->children)) return '';
 
 		$inner = $pre = $this->indentStr();
+		
+		$ret = '';
 
 		if (!empty($block->selectors)) {
-			echo $pre .
+			$ret .= $pre .
 				implode($this->tagSeparator, $block->selectors) .
 				$this->open . $this->break;
 			$this->indentLevel++;
@@ -3543,21 +3593,25 @@ class scss_formatter {
 
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
-			echo $inner . implode($glue, $block->lines);
+			$ret .= $inner . implode($glue, $block->lines);
+
 			if (!empty($block->children)) {
-				echo $this->break;
+				$ret .= $this->break;
+			} else if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
+			    $ret = substr($ret, 0, -1);
 			}
 		}
 
 		foreach ($block->children as $child) {
-			$this->block($child);
+			$ret .= $this->block($child);
 		}
 
 		if (!empty($block->selectors)) {
 			$this->indentLevel--;
-			if (empty($block->children)) echo $this->break;
-			echo $pre . $this->close . $this->break;
+			if (empty($block->children)) $ret .= $this->break;
+			$ret .= $pre . $this->close . $this->break;
 		}
+		return $ret;
 	}
 }
 
@@ -3591,10 +3645,12 @@ class scss_formatter_nested extends scss_formatter {
 		if ($block->type == "root") {
 			$this->adjustAllChildren($block);
 		}
+		
+		$ret = '';
 
 		$inner = $pre = $this->indentStr($block->depth - 1);
 		if (!empty($block->selectors)) {
-			echo $pre .
+			$ret .= $pre .
 				implode($this->tagSeparator, $block->selectors) .
 				$this->open . $this->break;
 			$this->indentLevel++;
@@ -3603,20 +3659,25 @@ class scss_formatter_nested extends scss_formatter {
 
 		if (!empty($block->lines)) {
 			$glue = $this->break.$inner;
-			echo $inner . implode($glue, $block->lines);
-			if (!empty($block->children)) echo $this->break;
+			$ret .= $inner . implode($glue, $block->lines);
+
+			if (!empty($block->children)) {
+				$ret .= $this->break;
+			} else if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
+			    $ret = substr($ret, 0, -1);
+			}
 		}
 
 		foreach ($block->children as $i => $child) {
 			// echo "*** block: ".$block->depth." child: ".$child->depth."\n";
-			$this->block($child);
+			$ret .= $this->block($child);
 			if ($i < count($block->children) - 1) {
-				echo $this->break;
+				$ret .= $this->break;
 
 				if (isset($block->children[$i + 1])) {
 					$next = $block->children[$i + 1];
 					if ($next->depth == max($block->depth, 1) && $child->depth >= $next->depth) {
-						echo $this->break;
+						$ret .= $this->break;
 					}
 				}
 			}
@@ -3624,12 +3685,13 @@ class scss_formatter_nested extends scss_formatter {
 
 		if (!empty($block->selectors)) {
 			$this->indentLevel--;
-			echo $this->close;
+			$ret .= $this->close;
 		}
 
 		if ($block->type == "root") {
-			echo $this->break;
+			$ret .= $this->break;
 		}
+		return $ret;
 	}
 }
 
@@ -3638,9 +3700,41 @@ class scss_formatter_compressed extends scss_formatter {
 	public $tagSeparator = ",";
 	public $assignSeparator = ":";
 	public $break = "";
+	public $removeTrailingSemicolon = true;
+	public $replaceColorNames = true;
+	public $omitZeroUnit = true;
+	public $omitZeroLeading = true;
+	public $stripComments = true;
 
 	public function indentStr($n = 0) {
 		return "";
+	}
+
+	public function implodeList($delim, $list) {
+	    // no delimiter => actually a whitespace separated list (as in "margin")
+	    if ($delim == "") {
+	        $delim = " ";
+	    }
+	    return implode($delim, $list);
+	}
+
+	public function implodeSelectors($selectors){
+	    $ret = '';
+	    $ws = false;
+	    foreach($selectors as $selector){
+	        // do not use whitespace around descendant selectors
+	        if (in_array($selector,array('+','~','>'),true)) {
+	            $ws = false;
+	        }else{
+	            if ($ws) {
+	                $ret .= ' ';
+	            } else {
+	                $ws = true;
+	            }
+	        }
+	        $ret .= $selector;
+	    }
+	    return $ret;
 	}
 }
 
