@@ -3528,11 +3528,11 @@ class scss_formatter {
 	}
 
 	public function implodeList($delim, $items) {
-	    return implode("$delim ", $items);
+		return implode("$delim ", $items);
 	}
 
 	public function implodeSelectors($selectors) {
-	    return implode(" ", $selectors);
+		return implode(" ", $selectors);
 	}
 
 	public function color($r, $g, $b, $a) {
@@ -3540,38 +3540,38 @@ class scss_formatter {
 			if ($a == 0 && $this->replaceColorNames) {
 				return 'transparent';
 			}
-		    return 'rgba('.$r.$this->tagSeparator.$g.$this->tagSeparator.$b.$this->tagSeparator.$a.')';
+			return 'rgba('.$r.$this->tagSeparator.$g.$this->tagSeparator.$b.$this->tagSeparator.$a.')';
 		}
-		
+
 		$h = sprintf("#%02x%02x%02x", $r, $g, $b);
-		
+
 		// Converting hex color to short notation (e.g. #003399 to #039)
 		if ($h[1] === $h[2] && $h[3] === $h[4] && $h[5] === $h[6]) {
-		    $h = '#' . $h[1] . $h[3] . $h[5];
+			$h = '#' . $h[1] . $h[3] . $h[5];
 		}
-		
+
 		if ($this->replaceColorNames) {
-		    // Convert hex color to css color name if shorter (e.g. #f00 to red)
-		    $name = array_search($r.','.$g.','.$b, scssc::$cssColors, true);
-		    if ($name !== false && strlen($name) < strlen($h)) {
-		        $h = $name;
-		    }
+			// Convert hex color to css color name if shorter (e.g. #f00 to red)
+			$name = array_search($r.','.$g.','.$b, scssc::$cssColors, true);
+			if ($name !== false && strlen($name) < strlen($h)) {
+				$h = $name;
+			}
 		}
-		
+
 		return $h;
 	}
-	
+
 	public function number($num, $unit) {
 		$num = round($num, $this->numberPrecision);
 		if ($this->omitZeroUnit && $num == 0) {
-		    return 0;
+			return 0;
 		}
 		if ($this->omitZeroLeading) {
-		    if ($num > 0 && $num < 1) {
-		        $num = substr($num, 1);
-		    } else if ($num < 0 && $num > -1) {
-		        $num = '-' . substr($num, 2);
-		    }
+			if ($num > 0 && $num < 1) {
+				$num = substr($num, 1);
+			} else if ($num < 0 && $num > -1) {
+				$num = '-' . substr($num, 2);
+			}
 		}
 		return $num . $unit;
 	}
@@ -3598,7 +3598,7 @@ class scss_formatter {
 			if (!empty($block->children)) {
 				$ret .= $this->break;
 			} else if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
-			    $ret = substr($ret, 0, -1);
+				$ret = substr($ret, 0, -1);
 			}
 		}
 
@@ -3645,7 +3645,7 @@ class scss_formatter_nested extends scss_formatter {
 		if ($block->type == "root") {
 			$this->adjustAllChildren($block);
 		}
-		
+
 		$ret = '';
 
 		$inner = $pre = $this->indentStr($block->depth - 1);
@@ -3664,7 +3664,7 @@ class scss_formatter_nested extends scss_formatter {
 			if (!empty($block->children)) {
 				$ret .= $this->break;
 			} else if ($this->removeTrailingSemicolon && substr($ret, -1) === ';') {
-			    $ret = substr($ret, 0, -1);
+				$ret = substr($ret, 0, -1);
 			}
 		}
 
@@ -3711,30 +3711,30 @@ class scss_formatter_compressed extends scss_formatter {
 	}
 
 	public function implodeList($delim, $list) {
-	    // no delimiter => actually a whitespace separated list (as in "margin")
-	    if ($delim == "") {
-	        $delim = " ";
-	    }
-	    return implode($delim, $list);
+		// no delimiter => actually a whitespace separated list (as in "margin")
+		if ($delim == "") {
+			$delim = " ";
+		}
+		return implode($delim, $list);
 	}
 
 	public function implodeSelectors($selectors){
-	    $ret = '';
-	    $ws = false;
-	    foreach($selectors as $selector){
-	        // do not use whitespace around descendant selectors
-	        if (in_array($selector,array('+','~','>'),true)) {
-	            $ws = false;
-	        }else{
-	            if ($ws) {
-	                $ret .= ' ';
-	            } else {
-	                $ws = true;
-	            }
-	        }
-	        $ret .= $selector;
-	    }
-	    return $ret;
+		$ret = '';
+		$ws = false;
+		foreach($selectors as $selector){
+			// do not use whitespace around descendant selectors
+			if (in_array($selector, array('+', '~', '>'), true)) {
+				$ws = false;
+			} else {
+				if ($ws) {
+					$ret .= ' ';
+				} else {
+					$ws = true;
+				}
+			}
+			$ret .= $selector;
+		}
+		return $ret;
 	}
 }
 
