@@ -27,6 +27,7 @@
   div {
     color: red; } }
 
+<<<<<<< HEAD
 @media a and b, a and c {
   a: 0; }
   
@@ -44,4 +45,3 @@
 @media a and f and g, b and f and g {
   div {
     display: none; } } }
-  

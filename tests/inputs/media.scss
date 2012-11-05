@@ -33,9 +33,21 @@
    }
 }
 
-@media a {
-    @media b, c{
-        a: 0;
+@media a, b {
+    @media c {
+        color: blue;
+    }
+}
+
+@media a{
+    @media b, c {
+        color: blue;
+    }
+}
+
+@media a, b{
+    @media c, d {
+        color: blue;
     }
 }
 
