@@ -90,7 +90,7 @@ class scssc {
 	}
 
 	protected function makeOutputBlock($type, $selectors = null) {
-		$out = new stdclass;
+		$out = new stdClass;
 		$out->type = $type;
 		$out->lines = array();
 		$out->children = array();
@@ -572,7 +572,7 @@ class scssc {
 		case "mixin_content":
 			$content = $this->get(self::$namespaces["special"] . "content");
 			if (is_null($content)) {
-				throw new \Exception("Unexpected @content inside of mixin");
+				throw new Exception("Unexpected @content inside of mixin");
 			}
 
 			$this->storeEnv = $content->scope;
@@ -590,7 +590,7 @@ class scssc {
 			fwrite(STDERR, "Line $line DEBUG: $value\n");
 			break;
 		default:
-			throw new exception("unknown child type: $child[0]");
+			throw new Exception("unknown child type: $child[0]");
 		}
 	}
 
@@ -661,7 +661,7 @@ class scssc {
 						$left[0] == "number" && $right[0] == "number")
 					{
 						if ($opName == "mod" && $right[2] != "") {
-							throw new \Exception(sprintf('Cannot modulo by a number with units: %s%s.', $right[1], $right[2]));
+							throw new Exception(sprintf('Cannot modulo by a number with units: %s%s.', $right[1], $right[2]));
 						}
 
 						$unitChange = true;
@@ -886,12 +886,12 @@ class scssc {
 				break;
 			case '/':
 				if ($rval == 0) {
-					throw new exception("color: Can't divide by zero");
+					throw new Exception("color: Can't divide by zero");
 				}
 				$out[] = $lval / $rval;
 				break;
 			default:
-				throw new exception("color: unknow op $op");
+				throw new Exception("color: unknow op $op");
 			}
 		}
 
@@ -1007,7 +1007,7 @@ class scssc {
 
 			return $this->compileValue($reduced);
 		default:
-			throw new exception("unknown value type: $type");
+			throw new Exception("unknown value type: $type");
 		}
 	}
 
@@ -1163,7 +1163,7 @@ class scssc {
 	}
 
 	protected function pushEnv($block=null) {
-		$env = new stdclass;
+		$env = new stdClass;
 		$env->parent = $this->env;
 		$env->store = array();
 		$env->block = $block;
@@ -1431,12 +1431,12 @@ class scssc {
 
 	protected function assertColor($value) {
 		if ($color = $this->coerceColor($value)) return $color;
-		throw new exception("expecting color");
+		throw new Exception("expecting color");
 	}
 
 	protected function assertNumber($value) {
 		if ($value[0] != "number")
-			throw new exception("expecting number");
+			throw new Exception("expecting number");
 		return $value[1];
 	}
 
@@ -1940,7 +1940,7 @@ class scssc {
 			if (null === $unit) {
 				$unit = $number[2];
 			} elseif ($unit !== $number[2]) {
-				throw new \Exception(sprintf('Incompatible units: "%s" and "%s".', $originalUnit, $item[2]));
+				throw new Exception(sprintf('Incompatible units: "%s" and "%s".', $originalUnit, $item[2]));
 			}
 
 			$originalUnit = $item[2];
@@ -2586,7 +2586,7 @@ class scss_parser {
 	// tree builders
 
 	protected function pushBlock($selectors) {
-		$b = new stdclass;
+		$b = new stdClass;
 		$b->parent = $this->env; // not sure if we need this yet
 
 		$b->selectors = $selectors;
@@ -3425,9 +3425,9 @@ class scss_parser {
 		}
 
 		if ($this->peek("(.*?)(\n|$)", $m, $count)) {
-			throw new exception("$msg: failed at `$m[1]` $loc");
+			throw new Exception("$msg: failed at `$m[1]` $loc");
 		} else {
-			throw new exception("$msg: $loc");
+			throw new Exception("$msg: $loc");
 		}
 	}
 
