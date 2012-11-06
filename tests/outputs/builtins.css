@@ -42,7 +42,9 @@
   color: rgba(145, 10, 10, 0);
   color: rgba(5, 10, 10, 0);
   color: rgba(145, 145, 145, 0);
-  color: rgba(5, 5, 5, 0); }
+  color: rgba(5, 5, 5, 0);
+  color: #000A0A0A;
+  color: #FFAABBCC; }
 
 #string {
   color: hello what is going on;
@@ -53,7 +55,12 @@
   color: 250%;
   color: 3;
   color: 3;
-  color: 4; }
+  color: 4;
+  top: 10px;
+  top: 1ex;
+  width: 200%;
+  bottom: 10px;
+  padding: 3em 1in 96px 72pt; }
 
 #list {
   len: 3;
