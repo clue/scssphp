@@ -23,14 +23,6 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		// check removing empty blocks and comments
 		$this->assertEquals('a{display:hidden}',$this->scss->compile('  /* comment */  b{a{ }} strong{;;;} a{display:hidden;;;} b{/*inner comment*/}'));
 
-		// do not mess around with attribute selectors
-		// http://www.w3.org/TR/CSS2/selector.html#attribute-selectors
-		$this->assertEquals('input[type="image"][disabled]{opacity:.5}',$this->scss->compile(' input[type="image"][disabled] { opacity: 0.5; } '));
-
-		// remove optional whitespace for child selectors, but keep whitespace for descendant selectors
-		// http://www.w3.org/TR/CSS2/selector.html#child-selectors
-		$this->assertEquals('a+b,c>d,e f{display:none}a.b>c d:not(.e){border:0}',$this->scss->compile('  a  +  b  ,  c  >  d  ,  e  f  { display: none; } a.b > c d:not(.e) { border: 0; }'));
-
 		// remove whitespace around list delimiter, but keep whitespace between space separated values
 		$this->assertEquals('*{a:red,green,blue}a{margin:0 0 0 0}',$this->scss->compile('* { a: red, green , blue ; } a { margin:  0  0  0   0; }'));
 	}
@@ -57,6 +49,35 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		));
 	}
 
+	/**
+	 * @dataProvider equalSelectorProvider
+	 */
+	public function testSelector($in,$out){
+		$this->assertEquals($out.'{border:0}',$this->scss->compile($in.'{border:0}'));
+	}
+
+	public function equalSelectorProvider() {
+		return $this->prepareSet(array(
+			'a' => 'a',
+			'  a  ' => 'a',
+			'a, b' => 'a,b',
+			'  a, b , c ' => 'a,b,c',
+			'a.b' => 'a.b',
+			'a .b' => 'a .b',
+			' a  b.c.d  span ' => 'a b.c.d span',
+			// http://www.w3.org/TR/CSS2/selector.html#attribute-selectors
+			'input[disabled]' => 'input[disabled]',
+			'button[disabled] span' => 'button[disabled] span',
+			' input[type="image"][disabled] ' => 'input[type="image"][disabled]',
+			// remove optional whitespace for child selectors, but keep whitespace for descendant selectors
+			// http://www.w3.org/TR/CSS2/selector.html#child-selectors
+			'a + b' => 'a+b',
+			'c > d' => 'c>d',
+			'  a  +  b  ,  c  >  d  ,  e  f  ' => 'a+b,c>d,e f',
+			'a.b > c d:not(.e) ' => 'a.b>c d:not(.e)',
+			' a b > c + d , e .f > g + h' => 'a b>c+d,e .f>g+h'
+		));
+	}
 
 	/**
 	 * @dataProvider equalMediaProvider
