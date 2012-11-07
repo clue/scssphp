@@ -8,23 +8,23 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		$this->scss->setFormatter(new scss_formatter_compressed());
 	}
 
-	public function testCompressTwice(){
+	public function testCompressTwice() {
 		$code = file_get_contents(__DIR__.'/inputs/variables.scss');
 
 		$result = $this->scss->compile($code);
 
-		$this->assertEquals($result,$this->scss->compile($result));
+		$this->assertEquals($result, $this->scss->compile($result));
 	}
 
-	public function testCompressFormat(){
+	public function testCompressFormat() {
 		// check removing excessive whitespace
-		$this->assertEquals('body,a,a:hover{border:0}',$this->scss->compile('body, a,  a:hover  { border: 0 ; }'));
+		$this->assertEquals('body,a,a:hover{border:0}', $this->scss->compile('body, a,  a:hover  { border: 0 ; }'));
 
 		// check removing empty blocks and comments
-		$this->assertEquals('a{display:hidden}',$this->scss->compile('  /* comment */  b{a{ }} strong{;;;} a{display:hidden;;;} b{/*inner comment*/}'));
+		$this->assertEquals('a{display:hidden}', $this->scss->compile('  /* comment */  b{a{ }} strong{;;;} a{display:hidden;;;} b{/*inner comment*/}'));
 
 		// remove whitespace around list delimiter, but keep whitespace between space separated values
-		$this->assertEquals('*{a:red,green,blue}a{margin:0 0 0 0}',$this->scss->compile('* { a: red, green , blue ; } a { margin:  0  0  0   0; }'));
+		$this->assertEquals('*{a:red,green,blue}a{margin:0 0 0 0}', $this->scss->compile('* { a: red, green , blue ; } a { margin:  0  0  0   0; }'));
 	}
 
 	/**
@@ -32,8 +32,8 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @dataProvider equalSemicolonProvider
 	 */
-	public function testSemicolon($in,$out){
-		$this->assertEquals($out,$this->scss->compile($in));
+	public function testSemicolon($in, $out) {
+		$this->assertEquals($out, $this->scss->compile($in));
 	}
 
 	public function equalSemicolonProvider() {
@@ -52,8 +52,8 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @dataProvider equalSelectorProvider
 	 */
-	public function testSelector($in,$out){
-		$this->assertEquals($out.'{border:0}',$this->scss->compile($in.'{border:0}'));
+	public function testSelector($in, $out) {
+		$this->assertEquals($out.'{border:0}', $this->scss->compile($in.'{border:0}'));
 	}
 
 	public function equalSelectorProvider() {
@@ -82,8 +82,8 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @dataProvider equalMediaProvider
 	 */
-	public function testMediaQueries($in,$out){
-		$this->assertEquals('@media '.$out.'{a{border:0}}',$this->scss->compile('@media '.$in.' {a{border:0}}'));
+	public function testMediaQueries($in, $out) {
+		$this->assertEquals('@media '.$out.'{a{border:0}}', $this->scss->compile('@media '.$in.' {a{border:0}}'));
 	}
 
 	public function equalMediaProvider() {
@@ -103,8 +103,8 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @dataProvider equalColorsProvider
 	 */
-	public function testCompressColor($in,$out) {
-		$this->assertEquals('color:'.$out,$this->scss->compile('color:'.$in));
+	public function testCompressColor($in, $out) {
+		$this->assertEquals('color:'.$out, $this->scss->compile('color:'.$in));
 	}
 
 	public function equalColorsProvider() {
@@ -130,11 +130,11 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @dataProvider equalNumbersProvider
 	 */
-	public function testCompressNumber($in,$out){
-		$this->assertEquals('padding:'.$out,$this->scss->compile('padding:'.$in));
+	public function testCompressNumber($in, $out) {
+		$this->assertEquals('padding:'.$out, $this->scss->compile('padding:'.$in));
 	}
 
-	public function equalNumbersProvider(){
+	public function equalNumbersProvider() {
 		return $this->prepareSet(array(
 			'14px' => '14px', // unchanged
 			'0px'  => '0', // remove zero unit
@@ -154,7 +154,7 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 		));
 	}
 
-	private function prepareSet($set){
+	private function prepareSet($set) {
 		return array_map(function($in, $out) { return array($in, $out); }, array_keys($set), $set);
 	}
 
