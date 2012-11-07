@@ -10,33 +10,53 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 
 	public function testCompressTwice(){
 		$code = file_get_contents(__DIR__.'/inputs/variables.scss');
-		
+
 		$result = $this->scss->compile($code);
-		
+
 		$this->assertEquals($result,$this->scss->compile($result));
 	}
 
 	public function testCompressFormat(){
-		// check removing trailing semicolons
-		$this->assertEquals('@import "missing";a{border:0;content:";";border:0}b{border:0}',$this->scss->compile('@import "missing";a{border:0;content:";";border:0;}b{border:0;}'));
-		
 		// check removing excessive whitespace
 		$this->assertEquals('body,a,a:hover{border:0}',$this->scss->compile('body, a,  a:hover  { border: 0 ; }'));
-		
+
 		// check removing empty blocks and comments
 		$this->assertEquals('a{display:hidden}',$this->scss->compile('  /* comment */  b{a{ }} strong{;;;} a{display:hidden;;;} b{/*inner comment*/}'));
-		
+
 		// do not mess around with attribute selectors
 		// http://www.w3.org/TR/CSS2/selector.html#attribute-selectors
 		$this->assertEquals('input[type="image"][disabled]{opacity:.5}',$this->scss->compile(' input[type="image"][disabled] { opacity: 0.5; } '));
-		
+
 		// remove optional whitespace for child selectors, but keep whitespace for descendant selectors
 		// http://www.w3.org/TR/CSS2/selector.html#child-selectors
 		$this->assertEquals('a+b,c>d,e f{display:none}a.b>c d:not(.e){border:0}',$this->scss->compile('  a  +  b  ,  c  >  d  ,  e  f  { display: none; } a.b > c d:not(.e) { border: 0; }'));
-		
+
 		// remove whitespace around list delimiter, but keep whitespace between space separated values
 		$this->assertEquals('*{a:red,green,blue}a{margin:0 0 0 0}',$this->scss->compile('* { a: red, green , blue ; } a { margin:  0  0  0   0; }'));
 	}
+
+	/**
+	 * check removing unneeded trailing semicolons
+	 *
+	 * @dataProvider equalSemicolonProvider
+	 */
+	public function testSemicolon($in,$out){
+		$this->assertEquals($out,$this->scss->compile($in));
+	}
+
+	public function equalSemicolonProvider() {
+		return $this->prepareSet(array(
+			'@charset "utf8";' => '@charset "utf8"', // remove trailing semicolon
+			'@import "missing1";@import "missing2";' => '@import "missing1";@import "missing2"', // remove trailing, but keep in between
+			'a{border:0;}' => 'a{border:0}', // remove last semicolon in each block
+			'a{border:0;border:1;};' => 'a{border:0;border:1}',
+			'a{border:0;;;};' => 'a{border:0}', // remove excessive ones
+			'b{content:";"}' => 'b{content:";"}', // do not touch semicolons enclosed in strings
+			'a{a:0};b{b:0}' => 'a{a:0}b{b:0}', // remove semicolons between blocks
+//TODO:		'@media all{a{b:0;};c{d:0};};@media none{e:"f;";};' => '@media all{a{b:0}c{d:0}}@media none{e:"f;"}'
+		));
+	}
+
 
 	/**
 	 * @dataProvider equalMediaProvider
@@ -112,7 +132,7 @@ class CompressTest extends PHPUnit_Framework_TestCase {
 			'+0em'	 => '0'
 		));
 	}
-	
+
 	private function prepareSet($set){
 		return array_map(function($in, $out) { return array($in, $out); }, array_keys($set), $set);
 	}
